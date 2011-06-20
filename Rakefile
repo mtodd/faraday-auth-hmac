@@ -62,7 +62,12 @@ end
 
 desc "Open an irb session preloaded with this library"
 task :console do
-  sh "irb -rubygems -r ./lib/faraday/auth-hmac.rb"
+  sh  "ruby -rubygems -r irb -r ./test/helper -r faraday -r ./lib/faraday/auth-hmac.rb " <<
+      %(-e 'Test::Unit.run = true' ) << # so tests wont run
+      %(-e '$c = Faraday.new("http://httpbin.org"){ |b| b.request :auth_hmac; b.response :logger; b.adapter :net_http }' ) <<
+      %(-e '$r = $c.get("/get"){ |r| r.sign! "access_id", "secret" }' ) <<
+      %(-e 'puts $r.body' ) <<
+      %(-e 'IRB.start')
 end
 
 #############################################################################

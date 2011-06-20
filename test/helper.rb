@@ -1,8 +1,9 @@
 require 'rubygems'
-require 'test/unit'
 
 require 'bundler'
 Bundler.setup(:default, :development)
+
+require 'test/unit'
 
 require 'time'
 
