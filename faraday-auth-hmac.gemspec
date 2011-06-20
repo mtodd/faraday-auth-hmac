@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   ## If your rubyforge_project name is different, then edit it and comment out
   ## the sub! line in the Rakefile
   s.name              = 'faraday-auth-hmac'
-  s.version           = '1.0.0'
+  s.version           = '1.0.1'
   s.date              = '2011-06-20'
   s.rubyforge_project = 'faraday-auth-hmac'
 

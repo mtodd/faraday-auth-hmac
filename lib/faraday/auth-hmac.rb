@@ -36,7 +36,7 @@ module Faraday
     # method is called (as in the example above).
     #
     class AuthHMAC < Faraday::Middleware
-      VERSION     = '1.0.0'
+      VERSION     = '1.0.1'
       AUTH_HEADER = "Authorization".freeze
 
       # Modified CanonicalString to know how to pull from the Faraday-specific
