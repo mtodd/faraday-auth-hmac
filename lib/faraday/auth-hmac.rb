@@ -6,7 +6,7 @@ require 'auth-hmac'
 module Faraday
   class Request
 
-    register_lookup_modules :auth_hmac => :AuthHMAC
+    register_middleware :auth_hmac => :AuthHMAC
 
     attr_accessor :sign_with
 
@@ -42,22 +42,28 @@ module Faraday
       # Modified CanonicalString to know how to pull from the Faraday-specific
       # env hash.
       class CanonicalString < ::AuthHMAC::CanonicalString
+        
         def request_method(request)
           request[:method].to_s.upcase
         end
+        
         def request_body(request)
-          request[:body]
+          request[:body].to_s
         end
+        
         def request_path(request)
-          URI.parse(request[:url]).path
+          request[:url].path
         end
+        
         def request_path(request, authenticate_referrer)
           return super if authenticate_referrer
-          URI.parse(request[:url]).path
+          request[:url].path
         end
+        
         def headers(request)
           request[:request_headers]
         end
+        
       end
 
       class << self
@@ -69,6 +75,7 @@ module Faraday
       def self.auth
         ::AuthHMAC.new(keys, options)
       end
+      
       def auth
         self.class.auth
       end
