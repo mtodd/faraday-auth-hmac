@@ -1,46 +1,40 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
-# require 'rack/utils'
 
 class AuthHMACMiddlewareTest < Faraday::TestCase
   def setup
     Faraday::Request::AuthHMAC.keys.clear
     @access_id, @secret = "id", "secret"
-    @connection = Faraday.new :url => 'http://sushi.com/api'
-    @request    = Faraday::Request.create(:get) do |req|
-      req.url 'foo.json'
-      req.body = "test"
+    @conn = Faraday.new do |req|
+      req.request :auth_hmac
+      req.adapter :test do |stub|
+        stub.post('/echo') do |env|
+          posted_as = env[:request_headers]['Content-Type']
+          [200, {'Content-Type' => posted_as}, env[:body]]
+        end
+      end
     end
-    generate_env!
   end
 
   def test_auth_hmac_skips_when_sign_is_not_called
-    call(@env)
-    assert_nil @env[:request_headers]['Authorization']
+    response = @conn.post('/echo', { :some => 'data' }, 'content-type' => 'application/x-foo')
+    assert_nil response.env[:request_headers]['Authorization']
   end
-
-  def test_request_will_instruct_middleware_to_sign_if_told_to
-    assert_nil @env[:sign_with]
-
-    @request.sign! @access_id, @secret
-    generate_env!
-    assert_equal @access_id, @env[:sign_with]
-  end
-
+  
   def test_request_instructed_to_sign_a_request_will_result_in_a_correctly_signed_request
-    @env[:sign_with] = @access_id
-    klass.keys = {@access_id => @secret}
-
-    call(@env)
-    assert signed?(@env, @access_id, @secret), "should be signed"
+    response = @conn.post('/echo', { :some => 'data' }, 'content-type' => 'application/x-foo') do |r|
+      r.sign! 'access_id', 'secret'
+    end
+    
+    assert signed?(response.env, @access_id, @secret), "should be signed"
   end
-
+  
   def test_a_signed_request_includes_appropriate_headers
-    @request.sign! @access_id, @secret
-    generate_env!
-    call(@env)
-
+    response = @conn.post('/echo', { :some => 'data' }, 'content-type' => 'application/x-foo') do |r|
+      r.sign! 'access_id', 'secret'
+    end
+    
     %w(Authorization Content-MD5 Date).each do |header|
-      assert_not_nil @env[:request_headers][header], "should have #{header} header"
+      assert_not_nil response.env[:request_headers][header], "should have #{header} header"
     end
   end
 
@@ -48,14 +42,6 @@ class AuthHMACMiddlewareTest < Faraday::TestCase
 
   def klass
     Faraday::Request::AuthHMAC
-  end
-
-  def call(env)
-    klass.new(lambda{|_|}).call(env)
-  end
-
-  def generate_env!
-    @env = @request.to_env(@connection)
   end
 
   # Based on the `authenticated?` method in auth-hmac.

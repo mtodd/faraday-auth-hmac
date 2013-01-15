@@ -40,7 +40,7 @@ Gem::Specification.new do |s|
 
   ## List your runtime dependencies here. Runtime dependencies are those
   ## that are needed for an end user to actually USE your code.
-  s.add_dependency('faraday', ["~> 0.7.2"])
+  s.add_dependency('faraday', ["~> 0.8.1"])
   s.add_dependency('dnclabs-auth-hmac', ["~> 1.1.1"])
 
   ## List your development dependencies here. Development dependencies are
